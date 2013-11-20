@@ -8,7 +8,7 @@
 %%%
 %%%---- END COPYRIGHT ---------------------------------------------------------
 %%% @doc
-%%%     auto code:path 
+%%%     auto code:path
 %%%     - monitor Libs=$ERL_LIBS ++ [code:lib_dir()]
 %%%     - each Lib in existing Libs monitor path Lib
 %%%
@@ -19,8 +19,6 @@
 -module(fnotify_autopath).
 
 -behaviour(gen_server).
-
--define(debug, true).
 
 %% API
 -export([start_link/0]).
@@ -34,10 +32,10 @@
 -compile(export_all).
 -endif.
 
--define(SERVER, ?MODULE). 
+-define(SERVER, ?MODULE).
 
 %%
-%% path to watch, if path does not exist then 
+%% path to watch, if path does not exist then
 %% parents are scanned to supervise the path creation
 %%
 -record(path_ref,
@@ -110,7 +108,7 @@ init([]) ->
     %% load all known application paths,
     %% Do not auto loaded them, assume they are loaded by code server
     %% We should probably update this with code path status
-    LibRef1 = 
+    LibRef1 =
 	lists:foldl(
 	  fun(P = #path_ref { type=lib, path=Path, target = [] },Acc) ->
 		  case file:list_dir(Path) of
@@ -258,7 +256,7 @@ watch_dir_list([], PathRefs, _Type) ->
 watch_dir(Dir, Target, PathRefs, Type) ->
     case fnotify:watch(Dir) of
 	{ok,Ref} ->
-	    io:format("watching directory ~p '~p' target=~p\n", 
+	    io:format("watching directory ~p '~p' target=~p\n",
 		      [Dir,Type,Target]),
 	    P = #path_ref{ref=Ref,type=Type,path=Dir,target=Target},
 	    {true,[P|PathRefs]};
@@ -305,7 +303,7 @@ strip_existing(Ds0=[D|Ds],Exist) ->
 strip_existing([],Exist) ->
     [Exist].
 %%
-%% Handle application path 
+%% Handle application path
 %%
 handle_erl_apps({fevent,_Ref,Flags,Path,Name}, PathRef, State) ->
     case was_created(Flags) of
@@ -335,7 +333,7 @@ handle_erl_apps({fevent,_Ref,Flags,Path,Name}, PathRef, State) ->
 		    {noreply, State}
 	    end
     end.
-	    
+
 %%
 %% Find Ref among paths, add or delete paths
 %%
@@ -369,7 +367,7 @@ monitor_app_path(Path, Ls0) ->
 			true ->
 			    ?dbg("~s already exist add to autoload\n",
 				 [EBinPath]),
-			    gen_server:cast(fnotify_autoload, 
+			    gen_server:cast(fnotify_autoload,
 					    {add_autopath, EBinPath}),
 			    [L#path_ref {loaded=true}|Ls];
 			_ ->
@@ -382,9 +380,9 @@ monitor_app_path(Path, Ls0) ->
 	    ?dbg("monitor ~s is not directory ~p\n", [Path,_Error]),
 	    Ls0
     end.
-    
+
 %%
-%% Resolve an unresolve path name move watch 
+%% Resolve an unresolve path name move watch
 %%
 resolve_erl_libs({fevent,_Ref,Flags,Path,Name}, PathRef, State) ->
     case was_created(Flags) of
@@ -402,12 +400,12 @@ resolve_erl_libs({fevent,_Ref,Flags,Path,Name}, PathRef, State) ->
 						  PathRef1),
 			    {noreply,State#state { lib_refs=Refs}};
 			_Error ->
-			    ?dbg("unabled to watch '~s' error:~p\n", 
+			    ?dbg("unabled to watch '~s' error:~p\n",
 				 [PathName, _Error]),
 			    {noreply,State}
 		    end;
 		_Target ->
-		    ?dbg("error, path '~s' not in target ~p\n", 
+		    ?dbg("error, path '~s' not in target ~p\n",
 			 [PathName, _Target]),
 		    {noreply,State}
 	    end;

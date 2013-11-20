@@ -44,7 +44,7 @@ start() ->
     Port.
 
 deactivate(Port) ->
-    activate(Port, 0).    
+    activate(Port, 0).
 
 activate(Port) ->
     activate(Port, -1).
@@ -69,7 +69,9 @@ unwatch(Port, Wd) ->
 
 open() ->
     Driver = "fnotify_drv",
-    Path = code:priv_dir(fnotify),
+    EbinDir = filename:dirname(code:which(?MODULE)),
+    AppPath = filename:dirname(EbinDir),
+    Path = filename:join(AppPath, "priv"),
     ?dbg("load_driver '~s' from: '~s'\n", [Driver, Path]),
     case erl_ddll:load_driver(Path, Driver) of
 	ok ->
@@ -96,7 +98,6 @@ flags([attrib|Fs], Mask) -> flags(Fs, ?FLAG_ATTRIB bor Mask);
 flags([link|Fs], Mask) -> flags(Fs, ?FLAG_LINK bor Mask);
 flags([rename|Fs], Mask) -> flags(Fs, ?FLAG_RENAME bor Mask);
 flags([revoke|Fs], Mask) -> flags(Fs, ?FLAG_REVOKE bor Mask);
-flags([default|Fs], Mask) -> 
+flags([default|Fs], Mask) ->
     flags(Fs, ?FLAG_CREATE bor ?FLAG_DELETE bor ?FLAG_RENAME bor Mask);
 flags([], Mask) -> Mask.
-

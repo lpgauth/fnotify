@@ -32,8 +32,8 @@
 	  path,    %% path watched
 	  dir_list %% directory list
 	}).
-	  
--record(state, 
+
+-record(state,
 	{
 	  port,
 	  watch_list = []
@@ -79,7 +79,7 @@ handle_call({watch,Pid,Path,Flags}, _From, State) when is_pid(Pid) ->
 	    Ref = erlang:monitor(process, Pid),
 	    IsDir = fnotify:is_dir(Path),
 	    ListDir   = list_dir(IsDir, Path),
-	    W = #watch { pid=Pid, ref=Ref, wd=Wd, path=Path, 
+	    W = #watch { pid=Pid, ref=Ref, wd=Wd, path=Path,
 			 is_dir=IsDir, dir_list=ListDir },
 	    Ws = [W|State#state.watch_list],
 	    {reply, {ok,Ref}, State#state { watch_list=Ws }};
@@ -134,7 +134,7 @@ handle_info({fevent,Wd,Flags,Path,Name}, State) ->
 			   if W#watch.is_dir ->
 				   [dir_event(W,Flags)|Ws1];
 			      true ->
-				   W#watch.pid ! 
+				   W#watch.pid !
 				       {fevent,W#watch.ref,Flags,Path,Name},
 				   [W|Ws1]
 			   end;
@@ -196,36 +196,36 @@ dir_event(W, Flags) ->
 	    {Renamed,Added1,Removed1} =	renamed(Added,Removed,[],[]),
 	    lists:foreach(
 	      fun({Name,_I}) ->
-		      W#watch.pid ! 
+		      W#watch.pid !
 			  {fevent,W#watch.ref,[create],W#watch.path,Name}
 	      end, Added1),
 	    lists:foreach(
 	      fun({Name,_I}) ->
-		      W#watch.pid ! 
+		      W#watch.pid !
 			  {fevent,W#watch.ref,[delete],W#watch.path,Name}
 	      end, Removed1),
 	    lists:foreach(
 	      fun({Name,OldName,I}) ->
-		      W#watch.pid ! 
+		      W#watch.pid !
 			  {fevent,W#watch.ref,[moved_from,{cookie,I}],
 			   W#watch.path,OldName},
-		      W#watch.pid ! 
+		      W#watch.pid !
 			  {fevent,W#watch.ref,[moved_to,{cookie,I}],
 			   W#watch.path,Name}
 	      end, Renamed),
 	    if Added1 =:= [], Removed1 =:= [], Renamed =:= [] ->
-		    W#watch.pid ! 
+		    W#watch.pid !
 			{fevent,W#watch.ref,Flags,W#watch.path,[]};
 	       true ->
 		    ok
 	    end,
 	    W#watch { dir_list = ListDir };
 	false ->
-	    W#watch.pid ! 
+	    W#watch.pid !
 		{fevent,W#watch.ref,Flags,W#watch.path,[]},
 	    W
     end.
-	
+
 renamed(Added,[R={Name,I}|Removed],Removed1,Renamed) ->
     case lists:keytake(I,2,Added) of
 	{value,{NewName,I},Added1} ->
@@ -235,7 +235,7 @@ renamed(Added,[R={Name,I}|Removed],Removed1,Renamed) ->
     end;
 renamed(Added, [], Removed1, Renamed) ->
     {Renamed,Added,Removed1}.
-    
+
 list_dir(true, Path) ->
     case file:list_dir(Path) of
 	{ok, Files} ->
